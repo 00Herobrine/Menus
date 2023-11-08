@@ -47,4 +47,15 @@ ItemBuilder itemBuilder = new ItemBuilder(ItemStack itemStack);
 ```java
 ItemBuilder itemBuilder = new ItemBuilder(Material material);
 ```
+
+### Opening Menus
+The method to opening should be familiar as it's just the same was an Inventory.
+```java
+Menu menu = new Menu("Scaling Menu");
+menu.open(Player);
+```
+There is another way to open the Menu and that is with unclickable filler items in all empty slots.
+```java
+menu.open(Player, true);
+```
 [ItemBuilder]:<ItemBuilder>

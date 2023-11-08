@@ -155,9 +155,7 @@ public class Page {
      * Checks if this page is the only page in the parent menu.
      * @return True if it's the only page, false otherwise.
      */
-    public boolean isOnlyPage() {
-        return isFirstPage() && isLastPage();
-    }
+    public boolean isOnlyPage() { return isFirstPage() && isLastPage(); }
     public Page getNextPage() {
         return parent.getPage(pageNumber + 1);
     }

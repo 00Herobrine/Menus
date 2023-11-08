@@ -8,8 +8,7 @@ import org.x00Hero.Components.MenuItem;
 import org.x00Hero.Components.Page;
 
 public class MenuTest {
-
-    public void ScalingMenu(Player player) { // Infinitely Scaling Menu
+    public static void ScalingMenu(Player player) { // Infinitely Scaling Menu
         Menu menu = new Menu("Scaling Menu");
         for(Material material : Material.values()) {
             if(!material.isItem() || !material.isBlock()) continue;
@@ -18,18 +17,18 @@ public class MenuTest {
         menu.open(player);
     }
 
-    public void LimitedMenu(Player player) { // Scaling Inventory factoring the itemCount
+    public static void LimitedMenu(Player player) { // Scaling Inventory factoring the itemCount
         int maxSlots = 100;
         Menu menu = new Menu( maxSlots + " slotted Inventory", maxSlots); // need to find a way to define slots and pages
     }
 
-    public void DefinedMenu(Player player) { // Should show all 5 pages regardless if they're full or not.
+    public static void DefinedMenu(Player player) { // Should show all 5 pages regardless if they're full or not.
         Menu menu = new Menu("Defined Menu", 5);
         menu.build(); // build all pages within the limit
         menu.open(player);
     }
 
-    public void DefinedAddedMenu(Player player) { // Same as above but with a defined Page set
+    public static void DefinedAddedMenu(Player player) { // Same as above but with a defined Page set
         Menu menu = new Menu("Defined Menu with Added Page", 5);
         Page page = new Page(2, "Defined Page", 5);
         MenuItem freeItem = new MenuItem(new ItemStack(Material.ACACIA_BOAT));

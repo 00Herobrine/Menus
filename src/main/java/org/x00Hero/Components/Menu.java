@@ -43,7 +43,9 @@ public class Menu {
         } else getCreatePage(itemPage).addItem(menuItem);
     }
     public int getItemCount() {
-        return itemCount;
+        int count = 0;
+        for(Page page : pages.values()) count += page.getItemCount();
+        return count;
     }
     public int addToItemCount() { return addToItemCount(1); }
     public int addToItemCount(int amount) {
@@ -70,52 +72,27 @@ public class Menu {
         }
         return null;
     }
-    public void addItem(ItemStack item) {
-        addItem(-1, item);
-    }
-    public void addItem(int slot, ItemStack item) {
-        if(!pages.containsKey(currentPage)) {
-            pages.put(currentPage, new Page(currentPage, title + " - Page " + (currentPage + 1)));
-        }
-
+    public void addItem(ItemStack item) { addItem(-1, item); } // Add Item to any slot in any Page
+    public void addItem(int slot, ItemStack item) { // Add Item to any Page
+        if(!pages.containsKey(currentPage)) createPage(currentPage);
         Page page = pages.get(currentPage);
         if(page.isFull()) {
             currentPage++;
-            page = new Page(currentPage, title + " - Page " + (currentPage + 1));
-            pages.put(currentPage, page);
+            page = createPage(currentPage);
         }
-
         page.addItem(slot, item);
     }
 
     public void addItemToPage(int page, ItemStack item) {
-        if (page < 0) {
-            page = 0;
-        }
-
-        if (page >= pageLimit) {
-            // Check if the page exceeds the limit
-            throw new IllegalArgumentException("Page number exceeds the page limit.");
-        }
-
-        // Ensure the specified page exists
-        while (page >= pages.size()) {
-            // Create empty pages if needed
-            pages.put(pages.size(), new Page(page, title + " - Page " + (pages.size() + 1)));
-        }
-
-        Page menuPage = pages.get(page);
-        if (menuPage.isFull()) {
-            // If the specified page is full, create a new one
+        if (page < 0) throw new IllegalArgumentException("Page number must be >0.");
+        else if (page >= pageLimit) throw new IllegalArgumentException("Page number exceeds the page limit.");
+        Page menuPage = getCreatePage(page); // Ensures the specified page exists
+        if (menuPage.isFull()) { // If the specified page is full, add to Next Page
             page++;
-            if (page >= pageLimit) {
-                // Check if the page exceeds the limit after incrementing
+            if (page >= pageLimit) // Check if the page exceeds the limit after incrementing
                 throw new IllegalArgumentException("Page number exceeds the page limit.");
-            }
-            pages.put(page, new Page(page, title + " - Page " + (page + 1)));
-            menuPage = pages.get(page);
+            menuPage = getCreatePage(page);
         }
-
         menuPage.addItem(-1, item);
     }
     //endRegion
@@ -157,7 +134,7 @@ public class Menu {
 
     public void open(Player player) { open(player, 1); }
     public void open(Player player, int pageNumber) {
-        if(pages.containsKey(pageNumber)) getPage(pageNumber).open(player);
+        if(pages.containsKey(pageNumber)) getCreatePage(pageNumber).open(player);
         else player.sendMessage("Page not found.");
     }
     public void open(Player player, int pageNumber, boolean fillEmpty) {
