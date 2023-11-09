@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.x00Hero.Logger;
+import org.x00Hero.Main;
 import org.x00Hero.Menus.MenuController;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +61,7 @@ public class Page {
     public MenuItem setItem(MenuItem menuItem, int slot) {
         MenuItem itemAtSlot = items.getOrDefault(slot, null);
         String itemSlotName = itemAtSlot == null ? "null" : itemAtSlot.getItemBuilder().getName();
-        Logger.Log("Setting Item '" + menuItem.getItemBuilder().getName() + "' @ " + slot + " itemAtSlot? " + itemSlotName);
+        Main.Log("Setting Item '" + menuItem.getItemBuilder().getName() + "' @ " + slot + " itemAtSlot? " + itemSlotName);
         //menuItem.setSlot(slot);
         items.put(slot, menuItem);
         if(inventory != null) inventory.setItem(slot, menuItem.getItemStack());
@@ -82,7 +82,7 @@ public class Page {
             if(!items.containsKey(curSlot)) slot = curSlot;
             curSlot++;
         }
-        Logger.Log("Got Available Slot " + slot);
+        Main.Log("Got Available Slot " + slot);
         return slot;
     }
     public boolean isSlotAvailable() { return getAvailableSlot() != -1; }
@@ -174,7 +174,7 @@ public class Page {
         forwardSlot = !isLastPage() ? adjCount - 1 : -1;
         backItem = new MenuItem(Menu.backItemBuilder, backSlot);
         forwardItem = new MenuItem(Menu.forwardItemBuilder, forwardSlot);
-        Logger.Log("Creating Navigation Items @ " + backSlot + " " + forwardSlot);
+        Main.Log("Creating Navigation Items @ " + backSlot + " " + forwardSlot);
     }
 
     public void open(Player player) { open(player, false); }
@@ -184,19 +184,19 @@ public class Page {
         MenuController.setInMenus(player, this);
     }
     public void Build() {
-        Logger.Log("Building page " + pageNumber + " with " + getItemCount() + " items.");
+        Main.Log("Building page " + pageNumber + " with " + getItemCount() + " items.");
         int itemCount = getItemCount();
         int adjItemCount = (itemCount % 9 == 0 && itemCount < 54) ? getAdjustedAmount(itemCount + 1) : getAdjustedAmount(itemCount);
         if(getItemCount() <= 5) inventory = Bukkit.createInventory(null, InventoryType.HOPPER, ChatColor.translateAlternateColorCodes('&', title));
         else inventory = Bukkit.createInventory(null, adjItemCount, ChatColor.translateAlternateColorCodes('&', title));
         createItems();
         for(int curSlot = 0; curSlot < getAdjustedAmount(biggestSlot); curSlot++) {
-            Logger.Log("Checking slot " + curSlot);
+            Main.Log("Checking slot " + curSlot);
             if(curSlot == backSlot) { RecursivelySetItem(setItem(backItem)); curSlot++; continue; } // shiftItems forward
             else if(curSlot == forwardSlot) { setItem(forwardItem); continue; }
             MenuItem menuItem = items.get(curSlot);
             if(menuItem == null || !menuItem.isEnabled()) continue;
-            Logger.Log("Adding Item '" + menuItem.getItemBuilder().getName() +"' @ " + curSlot + "(" + menuItem.getSlot() +") to page " + pageNumber);
+            Main.Log("Adding Item '" + menuItem.getItemBuilder().getName() +"' @ " + curSlot + "(" + menuItem.getSlot() +") to page " + pageNumber);
             inventory.setItem(curSlot, menuItem.getItemStack());
         }
         build = false;

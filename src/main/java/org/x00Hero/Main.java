@@ -18,4 +18,8 @@ public class Main extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new CommandController(), this);
         Bukkit.getPluginManager().registerEvents(new MenuController(), this);
     }
+
+    public static void Log(String message) {
+        Bukkit.getServer().getLogger().info(message);
+    }
 }

@@ -9,7 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.x00Hero.Logger;
+import org.x00Hero.Main;
 import org.x00Hero.Menus.Components.Menu;
 import org.x00Hero.Menus.Components.MenuItem;
 import org.x00Hero.Menus.Components.Page;
@@ -61,7 +61,7 @@ public class MenuController implements Listener {
 
     @EventHandler
     public void onMenuClick(MenuItemClickEvent e) {
-        Logger.Log(e.getMenu().getTitle() + " clicked @ " + e.getMenuItem());
+        Main.Log(e.getMenu().getTitle() + " clicked @ " + e.getMenuItem());
     }
     @EventHandler
     public void menuItemClick(MenuItemClickEvent e) {

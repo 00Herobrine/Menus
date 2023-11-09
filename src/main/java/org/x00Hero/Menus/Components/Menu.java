@@ -3,7 +3,7 @@ package org.x00Hero.Menus.Components;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.x00Hero.Logger;
+import org.x00Hero.Main;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,7 +68,7 @@ public class Menu {
         Page page = getCreatePage(currentPage);
         if(page.isFull()) {
             currentPage++;
-            Logger.Log("Page is full with " + page.getItemCount());
+            Main.Log("Page is full with " + page.getItemCount());
             page = createPage(currentPage);
         }
         page.addItem(item);
