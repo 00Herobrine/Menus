@@ -6,8 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.ArrayList;
+import org.x00Hero.Logger;
+import org.x00Hero.MenuController;
 import java.util.HashMap;
 import java.util.List;
 
@@ -42,18 +42,41 @@ public class Page {
         }
         return menuItems;
     }
+    public MenuItem addItem(ItemStack item, int slot) {
+        if(slot < 0 || slot > slotLimit) slot = -1;
+        return addItem(new MenuItem(item, slot));
+    }
     public MenuItem addItem(MenuItem menuItem) {
         int itemSlot = menuItem.getSlot();
         if(itemSlot == -1 || itemSlot >= slotLimit) { // automatically slot it
             itemSlot = getAvailableSlot(); // returns -1 if none found
-            if(itemSlot == -1) return menuItem;
+            if(itemSlot == -1) return menuItem; // no Slot found
             menuItem.setSlot(itemSlot);
             items.put(itemSlot, menuItem);
-            parent.addToItemCount();
+            if(itemSlot > biggestSlot) biggestSlot = itemSlot;
+            parent.addToItemCount(menuItem.getItemBuilder().getAmount());
             return null;
         }
         return menuItem;
     }
+    public MenuItem setItem(MenuItem menuItem) { return setItem(menuItem, menuItem.getSlot()); }
+    public MenuItem setItem(MenuItem menuItem, int slot) {
+        MenuItem itemAtSlot = items.getOrDefault(slot, null);
+        String itemSlotName = itemAtSlot == null ? "null" : itemAtSlot.getItemBuilder().getName();
+        Logger.Log("Setting Item '" + menuItem.getItemBuilder().getName() + "' @ " + slot + " itemAtSlot? " + itemSlotName);
+        //menuItem.setSlot(slot);
+        items.put(slot, menuItem);
+        if(inventory != null) inventory.setItem(slot, menuItem.getItemStack());
+        return itemAtSlot;
+    }
+    private void RecursivelySetItem(MenuItem menuItem) { // for shifting the last row
+        MenuItem toAdd = menuItem;
+        while(toAdd != null) toAdd = setItem(toAdd, toAdd.getSlot() + 1);
+    }
+    public boolean canAddItem() {
+        return allowItemAddition && !isFull();
+    }
+
     public int getAvailableSlot() {
         int slot = -1;
         int curSlot = 0;
@@ -61,38 +84,16 @@ public class Page {
             if(!items.containsKey(curSlot)) slot = curSlot;
             curSlot++;
         }
+        Logger.Log("Got Available Slot " + slot);
         return slot;
     }
-    public boolean isSlotAvailable() {
-        return getAvailableSlot() != -1;
-    }
-    public boolean isSlotAvailable(int slot) {
-        return slot >= 0 && slot < slotLimit && !items.containsKey(slot);
-    }
+    public boolean isSlotAvailable() { return getAvailableSlot() != -1; }
+    public boolean isSlotAvailable(int slot) { return slot >= 0 && slot < slotLimit && !items.containsKey(slot); }
 
-    public Menu getParent() {
-        return parent;
-    }
-    public void setParent(Menu parent) {
+    public Menu getParent() { return parent; }
+    public Page setParent(Menu parent) {
         this.parent = parent;
-    }
-
-    public void addItem(int slot, ItemStack item) {
-        if (slot < 0 || slot >= inventory.getSize()) {
-            for (int i = 0; i < inventory.getSize(); i++) {
-                if (inventory.getItem(i) == null) {
-                    inventory.setItem(i, item);
-                    break;
-                }
-            }
-        } else {
-            inventory.setItem(slot, item);
-        }
-        if(slot > biggestSlot) biggestSlot = slot;
-        items.put(slot, new MenuItem(item, slot));
-    }
-    public boolean canAddItem() {
-        return allowItemAddition && !isFull();
+        return this;
     }
 
     public String getTitle() {
@@ -142,14 +143,15 @@ public class Page {
      * @return True if it's the last page, false otherwise.
      */
     public boolean isLastPage() {
-        return pageNumber == parent.getPageCount();
+        //Logger.Log("Is Last? " + pageNumber + " -> " + parent.getPageCount());
+        return pageNumber == parent.getPageCount() - 1;
     }
     /**
      * Checks if this page is the last page in the parent menu.
      * @return True if it's the first page, false otherwise.
      */
     public boolean isFirstPage() {
-        return pageNumber == 1;
+        return pageNumber == 0;
     }
     /**
      * Checks if this page is the only page in the parent menu.
@@ -170,39 +172,39 @@ public class Page {
 
     public void createItems() {
         int adjCount = getAdjustedAmount(biggestSlot);
-        backSlot = biggestSlot < 5 ? adjCount - 5 : adjCount - 9;
-        forwardSlot = adjCount - 1;
-        backItem = new MenuItem(Menu.backItemBuilder, -1, backSlot);
-        forwardItem = new MenuItem(Menu.forwardItemBuilder, -1, forwardSlot);
+        backSlot = !isFirstPage() ? biggestSlot < 5 ? adjCount - 5 : adjCount - 9 : -1;
+        forwardSlot = !isLastPage() ? adjCount - 1 : -1;
+        backItem = new MenuItem(Menu.backItemBuilder, backSlot);
+        forwardItem = new MenuItem(Menu.forwardItemBuilder, forwardSlot);
+        Logger.Log("Creating Navigation Items @ " + backSlot + " " + forwardSlot);
     }
-    public void Build(boolean thingy) {
-        if(getItemCount() <= 5) inventory = Bukkit.createInventory(null, InventoryType.HOPPER, ChatColor.translateAlternateColorCodes('&', title));
-        else inventory = Bukkit.createInventory(null, getAdjustedAmount(getItemCount()), ChatColor.translateAlternateColorCodes('&', title));
-        createItems();
-        for(MenuItem menuItem : items.values()) {
-            int itemSlot = menuItem.getSlot();
-            inventory.setItem(itemSlot, menuItem.getItemStack());
-        }
-    }
-    public void open(Player player) {
-        if(inventory == null || build) Build();
-        player.openInventory(inventory);
-        //MenuController.setInMenus(player, this); for event handling
-    }
+
+    public void open(Player player) { open(player, false); }
     public void open(Player player, boolean fillEmpty) {
         if(inventory == null || build) Build();
         player.openInventory((fillEmpty) ? fillInventory(inventory) : fillPastLimit(inventory));
-        //MenuController.setInMenus(player, this); for event handling
+        MenuController.setInMenus(player, this);
     }
-    public int getBackSlot() {
-        return 0;
+    public void Build() {
+        Logger.Log("Building page " + pageNumber + " with " + getItemCount() + " items.");
+        int itemCount = getItemCount();
+        int adjItemCount = (itemCount % 9 == 0 && itemCount < 54) ? getAdjustedAmount(itemCount + 1) : getAdjustedAmount(itemCount);
+        if(getItemCount() <= 5) inventory = Bukkit.createInventory(null, InventoryType.HOPPER, ChatColor.translateAlternateColorCodes('&', title));
+        else inventory = Bukkit.createInventory(null, adjItemCount, ChatColor.translateAlternateColorCodes('&', title));
+        createItems();
+        for(int curSlot = 0; curSlot < getAdjustedAmount(biggestSlot); curSlot++) {
+            Logger.Log("Checking slot " + curSlot);
+            if(curSlot == backSlot) { RecursivelySetItem(setItem(backItem)); curSlot++; continue; } // shiftItems forward
+            else if(curSlot == forwardSlot) { setItem(forwardItem); continue; }
+            MenuItem menuItem = items.get(curSlot);
+            if(menuItem == null || !menuItem.isEnabled()) continue;
+            Logger.Log("Adding Item '" + menuItem.getItemBuilder().getName() +"' @ " + curSlot + "(" + menuItem.getSlot() +") to page " + pageNumber);
+            inventory.setItem(curSlot, menuItem.getItemStack());
+        }
+        build = false;
     }
-    public int getForwardSlot() {
-        return 0;
-    }
-
     public static Inventory fillInventory(Inventory i) {
-        for(int f = 0; f < i.getSize(); f++) { // turn this into a function
+        for(int f = 0; f < i.getSize(); f++) {
             if(i.firstEmpty() != -1) {
                 i.setItem(i.firstEmpty(), nothing.getItemStack());
             } else {
@@ -212,29 +214,7 @@ public class Page {
         return i;
     }
     public Inventory fillPastLimit(Inventory inventory) {
-        Inventory newInv = inventory;
-        for(int startSlot = slotLimit; startSlot < inventory.getSize(); startSlot++) if(startSlot != backSlot || startSlot != forwardSlot) newInv.setItem(startSlot, nothing.getItemStack());
-        return newInv;
-    }
-    public void Build() {
-        if(getItemCount() <= 5) inventory = Bukkit.createInventory(null, InventoryType.HOPPER, ChatColor.translateAlternateColorCodes('&', title));
-        else inventory = Bukkit.createInventory(null, getAdjustedAmount(getItemCount()), ChatColor.translateAlternateColorCodes('&', title));
-        curSlot = inventory.firstEmpty();
-        List<MenuItem> overfill = new ArrayList<>();
-        createItems();
-        //Main.main.getLogger().info("curSlot: " + curSlot + " backSlot: " + backSlot + " forwardSlot: " + forwardSlot);
-        for(MenuItem menuItem : items.values()) {
-            int itemSlot = menuItem.getSlot();
-            if(curSlot == backSlot && (!isFirstPage() && !isOnlyPage())) { inventory.setItem(backSlot, backItem.getItemStack()); curSlot++; } // shiftItem forward; Main.main.getLogger().info("On backSlot, shifting forward");
-            else if(curSlot == forwardSlot && (!isLastPage() && !isOnlyPage())) { overfill.add(menuItem); inventory.setItem(forwardSlot, forwardItem.getItemStack()); continue; }
-            if(itemSlot == -1) itemSlot = curSlot;
-            menuItem.setSlot(itemSlot);
-            if(!menuItem.isEnabled()) continue;
-            else curSlot++;
-            if(curSlot >= slotLimit) curSlot = -1;
-            else inventory.setItem(menuItem.getSlot(), menuItem.getItemStack());
-        }
-        for(MenuItem toPage : overfill) parent.AddOverfillItem(toPage, this);
-        build = false;
+        for(int startSlot = slotLimit; startSlot < inventory.getSize(); startSlot++) if(startSlot != backSlot || startSlot != forwardSlot) inventory.setItem(startSlot, nothing.getItemStack());
+        return inventory;
     }
 }

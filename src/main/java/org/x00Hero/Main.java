@@ -15,5 +15,6 @@ public class Main extends JavaPlugin {
     }
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new CommandController(), this);
+        Bukkit.getPluginManager().registerEvents(new MenuController(), this);
     }
 }

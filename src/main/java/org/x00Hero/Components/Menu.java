@@ -3,6 +3,7 @@ package org.x00Hero.Components;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.x00Hero.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,28 +20,17 @@ public class Menu {
     public static ItemBuilder backItemBuilder = new ItemBuilder(Material.ORANGE_STAINED_GLASS_PANE, "Back");
     public static ItemBuilder forwardItemBuilder = new ItemBuilder(Material.LIME_STAINED_GLASS_PANE, "Forward");
 
+    public Menu(String title) { this.title = title; }
     public Menu(String title, int pageLimit) { // expanding menu
         this.title = title;
         this.pageLimit = pageLimit;
     }
-    public Menu(String title) {
-        this.title = title;
-    }
+    public String getTitle() { return title; }
 
     //region Item Handling
     public MenuItem AddOverfillItem(MenuItem menuItem, Page page) {
         int pageNumber = page.pageNumber + 1;
         return getCreatePage(pageNumber).addItem(menuItem);
-    }
-    public void addItem(MenuItem menuItem) {
-        int itemPage = menuItem.getPage();
-        int itemSlot = menuItem.getSlot();
-        if(itemPage == -1) {
-            Page availablePage = getAvailablePage(true);
-            if(availablePage == null) return; // menu is full idk
-            else if(itemSlot == -1) menuItem.setSlot(availablePage.getAvailableSlot());
-            availablePage.addItem(menuItem);
-        } else getCreatePage(itemPage).addItem(menuItem);
     }
     public int getItemCount() {
         int count = 0;
@@ -72,17 +62,24 @@ public class Menu {
         }
         return null;
     }
-    public void addItem(ItemStack item) { addItem(-1, item); } // Add Item to any slot in any Page
-    public void addItem(int slot, ItemStack item) { // Add Item to any Page
-        if(!pages.containsKey(currentPage)) createPage(currentPage);
-        Page page = pages.get(currentPage);
+    public void addItem(ItemStack item) { addItem(item, -1); } // Add Item to any slot in any Page
+    public void addItem(ItemStack item, int slot) { // Add Item to any Page
+        Page page = getCreatePage(currentPage);
+        if(page.isFull()) {
+            Logger.Log("Page is full with " + page.getItemCount());
+            currentPage++;
+            page = createPage(currentPage);
+        }
+        page.addItem(item, slot);
+    }
+    public void addItem(MenuItem item) {
+        Page page = getCreatePage(currentPage);
         if(page.isFull()) {
             currentPage++;
             page = createPage(currentPage);
         }
-        page.addItem(slot, item);
+        page.addItem(item);
     }
-
     public void addItemToPage(int page, ItemStack item) {
         if (page < 0) throw new IllegalArgumentException("Page number must be >0.");
         else if (page >= pageLimit) throw new IllegalArgumentException("Page number exceeds the page limit.");
@@ -93,21 +90,19 @@ public class Menu {
                 throw new IllegalArgumentException("Page number exceeds the page limit.");
             menuPage = getCreatePage(page);
         }
-        menuPage.addItem(-1, item);
+        menuPage.addItem(item, -1);
     }
     //endRegion
     public boolean isInitial() { return initial; }
-    public boolean isValidPageNumber(int pageNumber) { return pageNumber <= pageLimit; }
+    public boolean isValidPageNumber(int pageNumber) { return pageNumber <= pageLimit && pageNumber >= 0; }
     public boolean containsPage(int pageNumber) {
         return pages.containsKey(pageNumber);
     }
     public int getPageCount() { return pages.size(); }
-    public Page getPage(int pageNumber) {
-        return pages.get(pageNumber);
-    }
+    public Page getPage(int pageNumber) { return pages.get(pageNumber); }
     public Page createPage(int pageNumber) {
         if(isValidPageNumber(pageNumber) && (pages.containsKey(pageNumber) || pageNumber > pageLimit)) return null;
-        Page page = new Page(pageNumber, title, slotLimit);
+        Page page = new Page(pageNumber, title, slotLimit).setParent(this);
         pages.put(pageNumber, page);
         initial = false;
         return page;
@@ -132,7 +127,7 @@ public class Menu {
         this.pageLimit = pageLimit;
     }
 
-    public void open(Player player) { open(player, 1); }
+    public void open(Player player) { open(player, 0); }
     public void open(Player player, int pageNumber) {
         if(pages.containsKey(pageNumber)) getCreatePage(pageNumber).open(player);
         else player.sendMessage("Page not found.");

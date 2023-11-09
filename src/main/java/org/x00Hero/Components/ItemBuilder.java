@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,11 +23,9 @@ public class ItemBuilder {
         amount = itemStack.getAmount();
         if(itemStack.getItemMeta() != null && itemStack.getItemMeta().hasDisplayName()) name = itemStack.getItemMeta().getDisplayName();
         else name = material.name();
-        lore = itemStack.getItemMeta().getLore();
+        lore = (itemStack.hasItemMeta() && itemStack.getItemMeta().hasLore() ? itemStack.getItemMeta().getLore() : new ArrayList<>());
     }
-    public ItemBuilder(Material material) {
-        this.material = material;
-    }
+    public ItemBuilder(Material material) { this.material = material; }
     public ItemBuilder(Material material, int amount) {
         this.material = material;
         this.amount = amount;
@@ -53,29 +52,21 @@ public class ItemBuilder {
         setLore(lore);
     }
 
-    public void Updated() {
-        updated = true;
-    }
+    public void Updated() { updated = true; }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
     public void setName(String name) {
         this.name = name;
         Updated();
     }
 
-    public int getAmount() {
-        return amount;
-    }
+    public int getAmount() { return amount; }
     public void setAmount(int amount) {
         this.amount = amount;
         Updated();
     }
 
-    public List<String> getLore() {
-        return lore;
-    }
+    public List<String> getLore() {return lore; }
     public void setLore(List<String> lore) {
         this.lore = lore;
         Updated();
@@ -84,9 +75,7 @@ public class ItemBuilder {
         setLore(Arrays.stream(ChatColor.translateAlternateColorCodes('&', rawLore).split("\n")).toList());
     }
 
-    public Material getMaterial() {
-        return material;
-    }
+    public Material getMaterial() { return material; }
     public void setMaterial(Material material) {
         this.material = material;
         Updated();

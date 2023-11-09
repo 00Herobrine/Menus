@@ -11,7 +11,7 @@ public class MenuTest {
     public static void ScalingMenu(Player player) { // Infinitely Scaling Menu
         Menu menu = new Menu("Scaling Menu");
         for(Material material : Material.values()) {
-            if(!material.isItem() || !material.isBlock()) continue;
+            if(!material.isItem() || !material.isBlock() || material.isAir()) continue;
             menu.addItem(new ItemStack(material));
         }
         menu.open(player);
@@ -22,7 +22,7 @@ public class MenuTest {
         Menu menu = new Menu( maxSlots + " slotted Inventory", maxSlots); // need to find a way to define slots and pages
     }
 
-    public static void DefinedMenu(Player player) { // Should show all 5 pages regardless if they're full or not.
+    public static void DefinedMenu(Player player) { // Should show all 5 pages regardless if they contain an item
         Menu menu = new Menu("Defined Menu", 5);
         menu.build(); // build all pages within the limit
         menu.open(player);

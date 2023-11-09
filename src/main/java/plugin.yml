@@ -1,9 +1,0 @@
-name: Menus
-prefix: Menus
-version: 1.0.0
-main: org.x00Hero.Main
-api-version: 1.19
-commands:
-  menu:
-    description: "Opens a Menu"
-    usage: "/menu [scaling/defined/added/limited]"

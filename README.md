@@ -9,6 +9,8 @@ A configurable Minecraft Menu resource for Spigot.
 - Enhanced ItemStack
 
 # Code Usage
+
+### Menu Creation
 Menu Creation is straight forward, once the resource files are imported to your Workspace you can instanitate a new Menu with your base Title.
 ```java
 Menu menu = new Menu("Scaling Menu");
@@ -16,6 +18,8 @@ Menu menu = new Menu("Scaling Menu");
 ```java
 Menu menu = new Menu("Limited Menu", int pageLimit);
 ```
+
+### Page Creation
 Page Creation can be more of a hassle as you are defining more variables and should be handling the paging of a menu yourself.
 ```java
 Page page = new Page("Set Page Title")
@@ -34,10 +38,16 @@ MenuItem menuItem = new MenuItem(ItemStack itemStack);
 ```
 
 ```java
-MenuItem menuItem = new MenuItem(ItemStack itemStack, int slot);
+MenuItem slottedItem = new MenuItem(ItemStack itemStack, int slot);
 ```
 ```java
-MenuItem menuItem = new MenuItem(ItemStack itemStack, int slot, int page);
+MenuItem pagedSlottedItem = new MenuItem(ItemStack itemStack, int slot, int page);
+```
+There is another way of defining the slot or page
+```java
+MenuItem menuItem = new MenuItem(ItemStack itemStack)
+menuItem.setSlot(32);
+menuItem.setPage(5);
 ```
 
 ### ItemBuilder
@@ -56,6 +66,7 @@ menu.open(Player);
 ```
 There is another way to open the Menu and that is with unclickable filler items in all empty slots.
 ```java
+Menu menu = new Menu("Scaling Menu");
 menu.open(Player, true);
 ```
 [ItemBuilder]:<ItemBuilder>
