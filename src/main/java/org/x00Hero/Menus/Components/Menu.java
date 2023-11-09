@@ -1,4 +1,4 @@
-package org.x00Hero.Components;
+package org.x00Hero.Menus.Components;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -63,19 +63,12 @@ public class Menu {
         return null;
     }
     public void addItem(ItemStack item) { addItem(item, -1); } // Add Item to any slot in any Page
-    public void addItem(ItemStack item, int slot) { // Add Item to any Page
-        Page page = getCreatePage(currentPage);
-        if(page.isFull()) {
-            Logger.Log("Page is full with " + page.getItemCount());
-            currentPage++;
-            page = createPage(currentPage);
-        }
-        page.addItem(item, slot);
-    }
+    public void addItem(ItemStack item, int slot) { addItem(new MenuItem(item, slot)); } // Add Item to any Page
     public void addItem(MenuItem item) {
         Page page = getCreatePage(currentPage);
         if(page.isFull()) {
             currentPage++;
+            Logger.Log("Page is full with " + page.getItemCount());
             page = createPage(currentPage);
         }
         page.addItem(item);

@@ -1,4 +1,4 @@
-package org.x00Hero;
+package org.x00Hero.Menus;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -9,10 +9,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.x00Hero.Components.Menu;
-import org.x00Hero.Components.MenuItem;
-import org.x00Hero.Components.Page;
-import org.x00Hero.Events.*;
+import org.x00Hero.Logger;
+import org.x00Hero.Menus.Components.Menu;
+import org.x00Hero.Menus.Components.MenuItem;
+import org.x00Hero.Menus.Components.Page;
+import org.x00Hero.Menus.Events.*;
 
 import java.util.HashMap;
 import java.util.List;

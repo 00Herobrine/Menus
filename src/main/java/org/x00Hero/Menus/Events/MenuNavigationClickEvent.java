@@ -1,34 +1,30 @@
-package org.x00Hero.Events;
+package org.x00Hero.Menus.Events;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.x00Hero.Components.Menu;
-import org.x00Hero.Components.MenuItem;
+import org.x00Hero.Menus.Components.Menu;
 
-public class MenuItemClickEvent extends Event implements Cancellable {
+public class MenuNavigationClickEvent extends Event implements Cancellable {
     private final Menu menu;
-    private final MenuItem menuItem;
     private final Player whoClicked;
     private final InventoryClickEvent event;
     private static final HandlerList HANDLERS_LIST = new HandlerList();
+    public final boolean forward;
 
-    public MenuItemClickEvent(Player whoClicked, MenuItem menuItem, Menu menu, InventoryClickEvent event) {
+    public MenuNavigationClickEvent(Player whoClicked, boolean forward, Menu menu, InventoryClickEvent event) {
         this.whoClicked = whoClicked;
-        this.menuItem = menuItem;
+        this.forward = forward;
         this.menu = menu;
         this.event = event;
-        if(menuItem.isEnabled()) event.setCancelled(true);
+        event.setCancelled(true);
     }
 
-    public String getID() { return menuItem.getID(); }
-
+    public boolean isForward() { return forward; }
     public Player getWhoClicked() { return whoClicked; }
-
     public Menu getMenu() { return menu; }
-    public MenuItem getMenuItem() { return menuItem; }
 
     public boolean isCancelled() { return event.isCancelled(); }
     public void setCancelled(boolean b) { getEvent().setCancelled(b); }

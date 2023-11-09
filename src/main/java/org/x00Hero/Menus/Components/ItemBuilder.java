@@ -1,4 +1,4 @@
-package org.x00Hero.Components;
+package org.x00Hero.Menus.Components;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

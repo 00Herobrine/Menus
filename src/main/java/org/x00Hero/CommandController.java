@@ -6,7 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.x00Hero.Components.Menu;
+import org.x00Hero.Menus.Components.Menu;
 import org.x00Hero.Tests.MenuTest;
 
 

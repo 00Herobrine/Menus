@@ -1,4 +1,4 @@
-package org.x00Hero.Components;
+package org.x00Hero.Menus.Components;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -7,11 +7,9 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.x00Hero.Logger;
-import org.x00Hero.MenuController;
+import org.x00Hero.Menus.MenuController;
 import java.util.HashMap;
 import java.util.List;
-
-import static org.x00Hero.Components.Menu.nothing;
 
 public class Page {
     private HashMap<Integer, MenuItem> items = new HashMap<>();
@@ -206,7 +204,7 @@ public class Page {
     public static Inventory fillInventory(Inventory i) {
         for(int f = 0; f < i.getSize(); f++) {
             if(i.firstEmpty() != -1) {
-                i.setItem(i.firstEmpty(), nothing.getItemStack());
+                i.setItem(i.firstEmpty(), Menu.nothing.getItemStack());
             } else {
                 f = i.getSize();
             }
@@ -214,7 +212,7 @@ public class Page {
         return i;
     }
     public Inventory fillPastLimit(Inventory inventory) {
-        for(int startSlot = slotLimit; startSlot < inventory.getSize(); startSlot++) if(startSlot != backSlot || startSlot != forwardSlot) inventory.setItem(startSlot, nothing.getItemStack());
+        for(int startSlot = slotLimit; startSlot < inventory.getSize(); startSlot++) if(startSlot != backSlot || startSlot != forwardSlot) inventory.setItem(startSlot, Menu.nothing.getItemStack());
         return inventory;
     }
 }

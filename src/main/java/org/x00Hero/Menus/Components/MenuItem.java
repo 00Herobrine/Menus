@@ -1,7 +1,6 @@
-package org.x00Hero.Components;
+package org.x00Hero.Menus.Components;
 
 import org.bukkit.inventory.ItemStack;
-import org.x00Hero.Logger;
 
 public class MenuItem {
     private ItemBuilder itemBuilder;

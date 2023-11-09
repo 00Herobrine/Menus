@@ -3,9 +3,9 @@ package org.x00Hero.Tests;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.x00Hero.Components.Menu;
-import org.x00Hero.Components.MenuItem;
-import org.x00Hero.Components.Page;
+import org.x00Hero.Menus.Components.Menu;
+import org.x00Hero.Menus.Components.MenuItem;
+import org.x00Hero.Menus.Components.Page;
 
 public class MenuTest {
     public static void ScalingMenu(Player player) { // Infinitely Scaling Menu

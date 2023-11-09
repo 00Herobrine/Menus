@@ -1,12 +1,12 @@
-package org.x00Hero.Events;
+package org.x00Hero.Menus.Events;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.x00Hero.Components.Menu;
-import org.x00Hero.Components.Page;
+import org.x00Hero.Menus.Components.Menu;
+import org.x00Hero.Menus.Components.Page;
 
 public class MenuClickEvent extends Event implements Cancellable {
     public final Player player;

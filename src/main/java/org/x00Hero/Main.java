@@ -2,6 +2,7 @@ package org.x00Hero;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.x00Hero.Menus.MenuController;
 
 public class Main extends JavaPlugin {
 
