@@ -133,24 +133,17 @@ public class Page {
     /**
      * @return The amount of items in the current page.
      */
-    public int getItemCount() {
-        return items.size();
-    }
+    public int getItemCount() { return items.size(); }
     /**
      * Checks if this page is the last page in the parent menu.
      * @return True if it's the last page, false otherwise.
      */
-    public boolean isLastPage() {
-        //Logger.Log("Is Last? " + pageNumber + " -> " + parent.getPageCount());
-        return pageNumber == parent.getPageCount() - 1;
-    }
+    public boolean isLastPage() { return pageNumber == parent.getPageCount() - 1; }
     /**
      * Checks if this page is the last page in the parent menu.
      * @return True if it's the first page, false otherwise.
      */
-    public boolean isFirstPage() {
-        return pageNumber == 0;
-    }
+    public boolean isFirstPage() { return pageNumber == 0; }
     /**
      * Checks if this page is the only page in the parent menu.
      * @return True if it's the only page, false otherwise.
@@ -168,8 +161,8 @@ public class Page {
     public Inventory getInventory() { return inventory; }
     public List<MenuItem> getMenuItems() { return items.values().stream().toList(); }
 
-    public void createItems() {
-        int adjCount = getAdjustedAmount(biggestSlot);
+    public void createItems() { createItems(getAdjustedAmount(biggestSlot)); }
+    public void createItems(int adjCount) {
         backSlot = !isFirstPage() ? biggestSlot < 5 ? adjCount - 5 : adjCount - 9 : -1;
         forwardSlot = !isLastPage() ? adjCount - 1 : -1;
         backItem = new MenuItem(Menu.backItemBuilder, backSlot);
@@ -184,13 +177,13 @@ public class Page {
         MenuController.setInMenus(player, this);
     }
     public void Build() {
-        Main.Log("Building page " + pageNumber + " with " + getItemCount() + " items.");
         int itemCount = getItemCount();
         int adjItemCount = (itemCount % 9 == 0 && itemCount < 54) ? getAdjustedAmount(itemCount + 1) : getAdjustedAmount(itemCount);
+        Main.Log("Building page " + pageNumber + " with " + getItemCount() + " items. (" + adjItemCount + ")");
         if(getItemCount() <= 5) inventory = Bukkit.createInventory(null, InventoryType.HOPPER, ChatColor.translateAlternateColorCodes('&', title));
         else inventory = Bukkit.createInventory(null, adjItemCount, ChatColor.translateAlternateColorCodes('&', title));
-        createItems();
-        for(int curSlot = 0; curSlot < getAdjustedAmount(biggestSlot); curSlot++) {
+        createItems(adjItemCount);
+        for(int curSlot = 0; curSlot < getAdjustedAmount(adjItemCount); curSlot++) {
             Main.Log("Checking slot " + curSlot);
             if(curSlot == backSlot) { RecursivelySetItem(setItem(backItem)); curSlot++; continue; } // shiftItems forward
             else if(curSlot == forwardSlot) { setItem(forwardItem); continue; }
