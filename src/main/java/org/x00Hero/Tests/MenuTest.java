@@ -7,6 +7,8 @@ import org.x00Hero.Menus.Components.Menu;
 import org.x00Hero.Menus.Components.MenuItem;
 import org.x00Hero.Menus.Components.Page;
 
+import java.util.ArrayList;
+
 public class MenuTest {
     public static void ScalingMenu(Player player) { // Infinitely Scaling Menu
         Menu menu = new Menu("Scaling Menu");

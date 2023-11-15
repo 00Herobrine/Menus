@@ -6,6 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.x00Hero.Main;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Menu {
@@ -37,6 +38,7 @@ public class Menu {
         for(Page page : pages.values()) count += page.getItemCount();
         return count;
     }
+    public int getTotalItems() { return itemCount; }
     public int addToItemCount() { return addToItemCount(1); }
     public int addToItemCount(int amount) {
         itemCount += amount;
@@ -62,6 +64,7 @@ public class Menu {
         }
         return null;
     }
+    public void addItems(List<MenuItem> menuitems) { for(MenuItem menuItem : menuitems) addItem(menuItem); }
     public void addItem(ItemStack item) { addItem(item, -1); } // Add Item to any slot in any Page
     public void addItem(ItemStack item, int slot) { addItem(new MenuItem(item, slot)); } // Add Item to any Page
     public void addItem(MenuItem item) {

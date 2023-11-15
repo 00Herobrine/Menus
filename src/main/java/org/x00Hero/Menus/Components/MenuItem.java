@@ -12,6 +12,10 @@ public class MenuItem {
     public MenuItem(ItemStack itemStack) {
         itemBuilder = new ItemBuilder(itemStack);
     }
+    public MenuItem(ItemStack itemStack, boolean cancelClick) {
+        itemBuilder = new ItemBuilder(itemStack);
+        this.cancelClick = cancelClick;
+    }
     public MenuItem(ItemStack itemStack, int slot) {
         this.slot = slot;
         itemBuilder = new ItemBuilder(itemStack);
@@ -42,7 +46,7 @@ public class MenuItem {
     public void isEnabled(boolean enabled) { this.enabled = enabled; }
     public boolean isEnabled() { return enabled; }
     public boolean isCancelClick() { return cancelClick; }
-    public void setCancelClick(boolean cancelClick) { this.cancelClick = cancelClick; }
+    public MenuItem setCancelClick(boolean cancelClick) { this.cancelClick = cancelClick; return this; }
     public String getID() { return ID; }
     public void setID(String ID) { this.ID = ID; }
     public Page getParent() { return parent; }

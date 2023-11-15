@@ -67,12 +67,10 @@ public class ItemBuilder {
     }
 
     public List<String> getLore() {return lore; }
+    public void setLore(String rawLore) { setLore(Arrays.stream(ChatColor.translateAlternateColorCodes('&', rawLore).split("\n")).toList()); }
     public void setLore(List<String> lore) {
         this.lore = lore;
         Updated();
-    }
-    public void setLore(String rawLore) {
-        setLore(Arrays.stream(ChatColor.translateAlternateColorCodes('&', rawLore).split("\n")).toList());
     }
 
     public Material getMaterial() { return material; }

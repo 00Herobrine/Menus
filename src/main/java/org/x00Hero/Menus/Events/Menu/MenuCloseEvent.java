@@ -1,28 +1,32 @@
-package org.x00Hero.Menus.Events;
+package org.x00Hero.Menus.Events.Menu;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.x00Hero.Menus.Components.Menu;
 import org.x00Hero.Menus.Components.Page;
 
-public class MenuPageChangeEvent extends Event implements Cancellable {
+public class MenuCloseEvent extends Event implements Cancellable {
     public final Player player;
     public final Menu menu;
-    public final Page previousPage, page;
+    public final Page page;
     private static final HandlerList HANDLERS_LIST = new HandlerList();
+    private final InventoryCloseEvent inventoryCloseEvent;
     private boolean isCancelled;
 
-    public MenuPageChangeEvent(Player player, Menu menu, Page previousPage, Page page) {
+    public MenuCloseEvent(Player player, Page page, InventoryCloseEvent e) {
         this.player = player;
-        this.menu = menu;
-        this.previousPage = previousPage;
         this.page = page;
+        this.menu = page.getParent();
+        this.inventoryCloseEvent = e;
     }
+
     @Override
     public boolean isCancelled() { return isCancelled; }
-    public void setCancelled(boolean b) { isCancelled = b; }
+    @Override
+    public void setCancelled(boolean b) { isCancelled = b; player.openInventory(inventoryCloseEvent.getInventory()); } // might need to delay this by a tick
 
     @Override
     public HandlerList getHandlers() { return HANDLERS_LIST; }

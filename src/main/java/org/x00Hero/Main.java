@@ -1,8 +1,10 @@
 package org.x00Hero;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.x00Hero.Menus.MenuController;
+import org.x00Hero.Tests.MenuEvents;
 
 public class Main extends JavaPlugin {
 
@@ -15,11 +17,10 @@ public class Main extends JavaPlugin {
         getCommand("menu").setExecutor(new CommandController());
     }
     public void registerEvents() {
-        Bukkit.getPluginManager().registerEvents(new CommandController(), this);
-        Bukkit.getPluginManager().registerEvents(new MenuController(), this);
+        registerEvent(new CommandController());
+        registerEvent(new MenuController());
+        registerEvent(new MenuEvents());
     }
-
-    public static void Log(String message) {
-        Bukkit.getServer().getLogger().info(message);
-    }
+    public void registerEvent(Listener listener) { Bukkit.getPluginManager().registerEvents(listener, this); }
+    public static void Log(String message) { Bukkit.getServer().getLogger().info(message); }
 }

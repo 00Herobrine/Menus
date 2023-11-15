@@ -1,4 +1,4 @@
-package org.x00Hero.Menus.Events;
+package org.x00Hero.Menus.Events.Menu;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -14,11 +14,15 @@ public class MenuOpenEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS_LIST = new HandlerList();
     private boolean isCancelled;
 
-    public MenuOpenEvent(Player player, Menu menu, Page page) {
+    public MenuOpenEvent(Player player, Page page) {
         this.player = player;
-        this.menu = menu;
         this.page = page;
+        this.menu = page.getParent();
     }
+
+    public Player getPlayer() { return player; }
+    public Menu getMenu() { return menu; }
+    public Page getPage() { return page; }
 
     @Override
     public boolean isCancelled() { return isCancelled; }

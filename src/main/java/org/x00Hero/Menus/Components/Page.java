@@ -3,20 +3,25 @@ package org.x00Hero.Menus.Components;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.x00Hero.Main;
+import org.x00Hero.Menus.Events.Item.MenuItemAddEvent;
+import org.x00Hero.Menus.Events.Item.MenuItemRemoveEvent;
 import org.x00Hero.Menus.MenuController;
 import java.util.HashMap;
 import java.util.List;
+
+import static org.x00Hero.Menus.MenuController.CallEvent;
 
 public class Page {
     private HashMap<Integer, MenuItem> items = new HashMap<>();
     private String title;
     private Inventory inventory;
     private boolean allowItemAddition = true, build = false;
-    private int slotLimit = 54, curSlot = 0; // for autoAdding
+    private int slotLimit = 54; // for autoAdding
     public int pageNumber, backSlot, forwardSlot, biggestSlot;
     private Menu parent;
     public MenuItem backItem, forwardItem;
@@ -32,7 +37,14 @@ public class Page {
         //this.inventory = Bukkit.createInventory(null, 54, title);
     }
 
+    public void unstoreItem(MenuItem menuItem) { unstoreItem(menuItem.getSlot()); }
+    public void unstoreItem(int slot) { unstoreItem(slot, null, null); }
+    public void unstoreItem(int slot, Player remover, InventoryInteractEvent e) { CallEvent(new MenuItemRemoveEvent(remover, items.get(slot), this, e)); items.remove(slot); }
+    public void storeItem(MenuItem menuItem) { storeItem(menuItem, menuItem.getSlot(), null, null); }
+    public void storeItem(MenuItem menuItem, Player storer, InventoryInteractEvent e) { storeItem(menuItem, menuItem.getSlot(), storer, e); }
+    public void storeItem(MenuItem menuItem, int slot, Player storer, InventoryInteractEvent e) { menuItem.setSlot(slot); items.put(slot, menuItem); CallEvent(new MenuItemAddEvent(storer, menuItem, this, e));}
     public List<MenuItem> addItems(List<MenuItem> menuItems) {
+        if(menuItems.size() > 53) throw new IllegalArgumentException("Cannot add more than 53 items");
         for (MenuItem item : menuItems) {
             MenuItem result = addItem(item);
             menuItems.remove(item);
@@ -45,6 +57,7 @@ public class Page {
         return addItem(new MenuItem(item, slot));
     }
     public MenuItem addItem(MenuItem menuItem) {
+        if(!allowItemAddition) return menuItem;
         int itemSlot = menuItem.getSlot();
         if(itemSlot == -1 || itemSlot >= slotLimit) { // automatically slot it
             itemSlot = getAvailableSlot(); // returns -1 if none found
