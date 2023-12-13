@@ -2,11 +2,15 @@ package org.x00Hero.Tests;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.persistence.PersistentDataType;
 import org.x00Hero.Main;
 import org.x00Hero.Menus.Events.Item.*;
 import org.x00Hero.Menus.Events.Menu.MenuCloseEvent;
 import org.x00Hero.Menus.Events.Menu.MenuOpenEvent;
 import org.x00Hero.Menus.Events.Menu.PageChangeEvent;
+
+import static org.x00Hero.Menus.Components.MenuItem.MenuItemKey;
+import static org.x00Hero.Menus.Components.MenuItem.MenuItemType;
 
 public class MenuEvents implements Listener {
     // How to use The Custom Events this resource contains
@@ -15,6 +19,7 @@ public class MenuEvents implements Listener {
     @EventHandler
     public void onMenuClick(MenuItemClickEvent e) {
         Main.Log(e.getMenu().getTitle() + " clicked @ " + e.getClickedItem());
+        Main.Log(e.getClickedItem().getCustomData(MenuItemKey, MenuItemType) + "");
     }
     @EventHandler
     public void onMenuOpen(MenuOpenEvent e) {
@@ -33,20 +38,20 @@ public class MenuEvents implements Listener {
     //region Item Events
     @EventHandler
     public void menuItemClick(MenuItemClickEvent e) {
-        Main.Log("Clicked Item '" + e.getClickedItem().getItemBuilder().getName() + "'");
+        Main.Log("Clicked Item '" + e.getClickedItem().getName() + "'");
         //e.setCancelled(false); // override any default cancelling
     }
     @EventHandler
     public void menuItemAdd(MenuItemAddEvent e) {
-        Main.Log("Added Item '" + e.getMenuItem().getItemBuilder().getName() + "' to Page " + e.getPage().pageNumber + " @ " + e.getSlot());
+        Main.Log("Added Item '" + e.getMenuItem().getName() + "' to Page " + e.getPage().pageNumber + " @ " + e.getSlot());
     }
     @EventHandler
     public void menuItemRemoved(MenuItemRemoveEvent e) {
-        Main.Log("Removed Item '" + e.getMenuItem().getItemBuilder().getName() + "' to Page " + e.getPage().pageNumber + " @ " + e.getSlot());
+        Main.Log("Removed Item '" + e.getMenuItem().getName() + "' to Page " + e.getPage().pageNumber + " @ " + e.getSlot());
     }
     @EventHandler
     public void menuItemSwap(MenuItemSwapEvent e) {
-        Main.Log("Swapped Item '" + e.getMenuItem().getItemBuilder().getName() + "' with '" + e.getSwappedItem().getItemBuilder().getName() + "' @ " + e.getSlot());
+        Main.Log("Swapped Item '" + e.getMenuItem().getName() + "' with '" + e.getSwappedItem().getName() + "' @ " + e.getSlot());
     }
     @EventHandler
     public void navigationItemClick(MenuNavigationClickEvent e) {

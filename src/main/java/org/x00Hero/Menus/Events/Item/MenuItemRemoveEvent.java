@@ -29,6 +29,7 @@ public class MenuItemRemoveEvent extends Event implements Cancellable {
     public String getID() { return menuItem.getID(); }
     public MenuItem getMenuItem() { return menuItem; }
     public int getSlot() { return menuItem.getSlot(); }
+    public int getAmount() { return menuItem.getAmount(); }
 
     public boolean isCancelled() { return event.isCancelled(); }
     public void setCancelled(boolean b) { getEvent().setCancelled(b); }

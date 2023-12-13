@@ -19,11 +19,16 @@ import org.x00Hero.Menus.Events.Item.*;
 import org.x00Hero.Menus.Events.Menu.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
+import static org.x00Hero.Main.Log;
+
 public class MenuController implements Listener {
+    private static HashMap<String, Menu> registeredMenus = new HashMap<>();
     private static HashMap<UUID, Page> inMenus = new HashMap<>(); // <Player ID, Page> being viewed
 
+    //region Menu Handling
     @EventHandler
     public void InventoryHandler(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) { return; }
@@ -31,68 +36,62 @@ public class MenuController implements Listener {
         Page page = getPage(player);
         InventoryAction action = event.getAction();
         if (clickedInventory == null || page == null) return;
-
-        ItemStack cursorItem = event.getCursor();
-        ItemStack clickedItem = event.getCurrentItem();
+        ItemStack currentItem = event.getCurrentItem();
+        ItemStack heldItem = event.getCursor();
         int slot = event.getSlot();
+        String currentName = currentItem != null ? currentItem.hasItemMeta() ? currentItem.getItemMeta().getDisplayName() : currentItem.getType().name() : "NULL";
+        String heldName = heldItem != null ? heldItem.hasItemMeta() ? heldItem.getItemMeta().getDisplayName() : heldItem.getType().name() : "NULL";
+        //Main.Log("Current: " + currentName + " held: " + heldName);
+        MenuItem clickedItem = page.getItem(slot);
+        int interactedSlot = event.getRawSlot();
+        Inventory interactedInventory = isTopInventory(interactedSlot, event.getView()) ? event.getView().getTopInventory() : event.getView().getBottomInventory();
+        //boolean destinedToPage = destinationInventory == getCurrentInventory(player);
+        if(currentItem != null && currentItem.isSimilar(Menu.nothing)) { event.setCancelled(true); /*Clicked Filled Slot*/ }
         if(clickedItem != null) {
-            if(clickedItem.equals(Menu.nothing.getItemStack())) { event.setCancelled(true); return; }
-            if(clickedItem.isSimilar(page.backItem.getItemStack())) {
-                CallEvent(new MenuNavigationClickEvent(player, false, page, event));
-                page.getPreviousPage().open(player);
-                return;
-            }
-            if(clickedItem.isSimilar(page.forwardItem.getItemStack())) {
-                CallEvent(new MenuNavigationClickEvent(player, true, page, event));
-                page.getNextPage().open(player);
-                return;
-            }
+            for(MenuItem navItem : page.getNavigationItems())
+                if(clickedItem.isSimilar(navItem)) CallEvent(new MenuNavigationClickEvent(player, true, page, event));
+            for(MenuItem menuItem : page.values())
+                if(clickedItem.isSimilar(menuItem)) CallEvent(new MenuItemClickEvent(player, menuItem, page, event));
         }
         if(action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-            Main.Log("Attempting to Shift-Add Item");
-            Inventory destinationInventory = event.getClickedInventory() == player.getInventory() ? event.getView().getTopInventory() : player.getInventory();
-            int destinationSlot = findDestinationSlot(event.getClickedInventory(), destinationInventory, clickedItem);
-            Main.Log("FirstEmpty: " + destinationInventory.firstEmpty() + " Destination: " + destinationSlot);
-            if(destinationInventory.firstEmpty() == -1 && destinationSlot == -1) { Main.Log("Inventory Full"); return; }
-            if(destinationInventory == player.getInventory()) { // Removing Item From Menu
-                page.unstoreItem(slot, player, event);
-            } else if(destinationInventory == getCurrentInventory(player)) { // Adding Item to Menu
-                page.storeItem(new MenuItem(clickedItem, destinationSlot), player, event);
+            //Main.Log("Attempting to Shift-Add Item")
+            Inventory destinationInventory = interactedInventory == player.getInventory() ? event.getView().getTopInventory() : event.getView().getBottomInventory();
+            boolean movedToPage = destinationInventory == page.getInventory();
+            int destinationSlot = findDestinationSlot(interactedInventory, destinationInventory, movedToPage ? currentItem : heldItem);
+            if(destinationSlot == -1) { Log("Inventory Full"); return; }
+            if(interactedInventory == page.getInventory()) { // Removing Item From Menu
+                ItemStack interactedItem = interactedInventory.getItem(slot);
+                Log("Updated Total: " + (interactedItem == null ? 0 : interactedItem.getAmount()) + " @ " + slot);
+                //page.unstoreItem(slot, player, event);
+            } else if(movedToPage) { // Adding Item to Menu
+                //findDestinationSlot(event.getClickedInventory(), destinationInventory, event.getCurrentItem());
+                //page.storeItem(currentItem, destinationSlot, player, event);
             }
         }
-        if(event.getClickedInventory() != page.getInventory()) return;
+        if(interactedInventory != page.getInventory()) return;
+        Log("Doing ACTION: " + action + " Interacted Slot: " + event.getSlot() + "(" + event.getRawSlot() + ") HK: " + event.getHotbarButton() + " Clicked: " + event.getClickedInventory().getType());
+        ItemStack hotBarItem = event.getHotbarButton() != -1 ? player.getInventory().getItem(event.getHotbarButton()) : null;
         switch(action) {
-            case PLACE_ALL, PLACE_ONE, PLACE_SOME -> page.storeItem(new MenuItem(cursorItem, slot), player, event);
-            case PICKUP_ALL, PICKUP_ONE, PICKUP_HALF, PICKUP_SOME -> // this won't always remove the item need to check
-                    page.unstoreItem(slot, player, event);
-            //case HOTBAR_SWAP:
-            case SWAP_WITH_CURSOR -> {
-                MenuItem updatedItem = new MenuItem(clickedItem, slot);
-                page.setItem(updatedItem);
-                CallEvent(new MenuItemSwapEvent(player, page.getItemInSlot(slot), updatedItem, page, event));
-            }
-        }
-    }
-    public ItemStack getNotFilledStack(ItemStack itemStack, Inventory inventory) {
-        int slot = 0;
-        ItemStack item = null;
-        while(slot < inventory.getSize() && item == null) {
-            ItemStack slottedItem = inventory.getItem(slot);
-            if(slottedItem == null) continue;
-            if(slottedItem.isSimilar(itemStack) && slottedItem.getAmount() <= slottedItem.getMaxStackSize()) item = slottedItem;
-            slot++;
-        }
-        return item;
-    }
-    private int findDestinationSlot(Inventory clickedInventory, Inventory destinationInventory, ItemStack movedItem) {
-        for (int i = 0; i < destinationInventory.getSize(); i++) {
-            if (destinationInventory.getItem(i) == null || destinationInventory.getItem(i).isSimilar(movedItem)) {
-                return i;
-            }
-        }
-        return -1; // Handle the case where the destination slot is not found
-    }
+            case HOTBAR_MOVE_AND_READD -> {} //Main.Log("MOVED " + page.storeItem(hotBarItem, slot, player, event).getName());
+            case HOTBAR_SWAP -> {
+                // is in currentItem if taking from menu and is in heldItem if depositing to menu
+                // partially wrong, returns air if depositing, so I need a way to determine the deposited item
+                String HBName = hotBarItem == null ? "NULL" : hotBarItem.getType().name();
+                Log("HB: " + HBName + " Held: " + heldName + " Current: " + currentName);
+                //if(hotBarItem != null && heldItem != null && heldItem.getType() == Material.AIR) page.storeItem(hotBarItem, slot, player, event);
+                //else page.unstoreItem(slot, player, event);
 
+            }
+            case PLACE_ALL, PLACE_ONE, PLACE_SOME -> {} //page.storeItem(heldItem, slot, player, event);
+            case PICKUP_ALL, PICKUP_ONE, PICKUP_HALF, PICKUP_SOME -> {} // this won't always remove the item need to check
+                    //page.unstoreItem(slot, player, event);
+            case SWAP_WITH_CURSOR -> {
+                //MenuItem updatedItem = new MenuItem(heldItem, slot);
+                //page.storeItem(heldItem, slot, player, event);
+                //CallEvent(new MenuItemSwapEvent(player, page.getItemInSlot(slot), updatedItem, page, event));
+            }
+        }
+    }
     @EventHandler
     public void inventoryDrag(InventoryDragEvent e) {
         Player player = (Player) e.getWhoClicked();
@@ -101,15 +100,13 @@ public class MenuController implements Listener {
         if(!inMenus(playerID)) return;
         for(int slot : e.getRawSlots()) {
             if(!isTopInventory(slot, e.getView())) continue;
-            MenuItem item = new MenuItem(e.getNewItems().get(slot), slot).setCancelClick(false);
-            page.storeItem(item);
+            //page.storeItem(e.getNewItems().get(slot), slot, player, e);
         }
-        Main.Log("Dragged to " + e.getRawSlots().size() + " slots");
+        //Main.Log("Dragged to " + e.getRawSlots().size() + " slots");
     }
+    //endregion
 
-    public static boolean isTopInventory(int slot, InventoryView view) { return isTopInventory(slot, view.getTopInventory().getSize()); }
-    public static boolean isTopInventory(int slot, int size1) { return slot <= size1; }
-
+    //region Player Menu Storing
     @EventHandler
     public void inventoryClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
@@ -119,28 +116,28 @@ public class MenuController implements Listener {
         removeInMenus(playerID);
         CallEvent(new MenuCloseEvent(player, page, e));
     }
-
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         UUID playerID = e.getPlayer().getUniqueId();
         if(inMenus(playerID)) removeInMenus(playerID);
     }
+    //endregion
 
-    @EventHandler
-    public void MenuClickEvent(MenuClickEvent e) {
-        Player player = e.getPlayer();
-        Page page = e.getPage();
-        MenuItem clickedItem = e.getClickedItem();
-        MenuItem heldItem = e.getHeldItem();
-
-    }
-
+    public static HashMap<String, Menu> RegisteredMenus() { return registeredMenus; }
+    public static List<Menu> getRegisteredMenus() { return registeredMenus.values().stream().toList(); }
     public static Inventory getCurrentInventory(Player player) { return getCurrentInventory(player.getUniqueId()); }
     public static Inventory getCurrentInventory(UUID uuid) { return getPage(uuid).getInventory(); }
     public static Page getPage(Player player) { return getPage(player.getUniqueId()); }
     public static Page getPage(UUID uuid) { return inMenus.get(uuid); }
     public static boolean inMenus(Player player) { return inMenus(player.getUniqueId()); }
     public static boolean inMenus(UUID uuid) { return inMenus.containsKey(uuid); }
+    public static boolean isTopInventory(int slot, InventoryView view) { return isTopInventory(slot, view.getTopInventory().getSize()); }
+    public static boolean isTopInventory(int slot, int size1) { return slot <= size1; }
+    public static void registerMenu(Menu menu) { if(!registeredMenus.containsKey(menu.ID)) registeredMenus.put(menu.ID, menu); }
+    public static void unregisterMenu(Menu menu) { registeredMenus.remove(menu.ID); }
+    public static void removeInMenus(Player player) { removeInMenus(player.getUniqueId()); }
+    public static void removeInMenus(UUID uuid) { inMenus.remove(uuid); }
+    public static void CallEvent(Event event) { Bukkit.getServer().getPluginManager().callEvent(event); }
     public static void setInMenus(Player player, Page page) { setInMenus(player.getUniqueId(), page); }
     public static void setInMenus(UUID uuid, Page page) {
         Player player = Bukkit.getPlayer(uuid);
@@ -148,7 +145,14 @@ public class MenuController implements Listener {
         else CallEvent(new MenuOpenEvent(player, page));
         inMenus.put(uuid, page);
     }
-    public static void removeInMenus(Player player) { removeInMenus(player.getUniqueId()); }
-    public static void removeInMenus(UUID uuid) { inMenus.remove(uuid); }
-    public static void CallEvent(Event event) { Bukkit.getServer().getPluginManager().callEvent(event); }
+    private int findDestinationSlot(Inventory clickedInventory, Inventory destinationInventory, ItemStack movedItem) {
+        int freeSlot = destinationInventory.firstEmpty();
+        for (int i = 0; i < destinationInventory.getSize(); i++) {
+            ItemStack item = destinationInventory.getItem(i);
+            if(item == null || !item.isSimilar(movedItem)) continue;
+            if(item.getAmount() >= item.getMaxStackSize()) continue;
+            return i;
+        }
+        return freeSlot;
+    }
 }
