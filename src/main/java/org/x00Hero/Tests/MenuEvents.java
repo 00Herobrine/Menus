@@ -2,12 +2,12 @@ package org.x00Hero.Tests;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.persistence.PersistentDataType;
 import org.x00Hero.Main;
 import org.x00Hero.Menus.Events.Item.*;
+import org.x00Hero.Menus.Events.Menu.MenuClickEvent;
 import org.x00Hero.Menus.Events.Menu.MenuCloseEvent;
 import org.x00Hero.Menus.Events.Menu.MenuOpenEvent;
-import org.x00Hero.Menus.Events.Menu.PageChangeEvent;
+import org.x00Hero.Menus.Events.Menu.MenuNavigationEvent;
 
 import static org.x00Hero.Menus.Components.MenuItem.MenuItemKey;
 import static org.x00Hero.Menus.Components.MenuItem.MenuItemType;
@@ -30,8 +30,12 @@ public class MenuEvents implements Listener {
         Main.Log("Closed Menu '" + e.menu.getTitle() + "' on page '" + e.page.pageNumber + "'");
     }
     @EventHandler
-    public void onMenuNavigation(PageChangeEvent e) {
-        Main.Log("Navigated to page '" + e.getPage().pageNumber + "' from '" + e.getPreviousPage().pageNumber + "'");
+    public void onMenuNavigation(MenuNavigationEvent e) {
+        Main.Log("Navigated to page '" + e.getPage().pageNumber + "' from '" + e.getInitialPage().pageNumber + "'");
+    }
+    @EventHandler
+    public void onMenuClick(MenuClickEvent e) {
+        Main.Log("Clicked Menu " + e.getMenu() + " @ " + e.getPage().getPageNumber());
     }
     //endregion
 

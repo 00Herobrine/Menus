@@ -20,6 +20,7 @@ public class MenuTest {
         //TestMenu.addPage(TestPage);
         if(nineMenu.addPage(0, ninePage)) nineMenu.register();
         scalingMenu.register();
+        scalingMenu.build();
     }
 
     public static void AnyMenu(Player player, InventoryType type) {

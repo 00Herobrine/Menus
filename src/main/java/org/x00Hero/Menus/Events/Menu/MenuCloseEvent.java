@@ -8,18 +8,12 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.x00Hero.Menus.Components.Menu;
 import org.x00Hero.Menus.Components.Page;
 
-public class MenuCloseEvent extends Event implements Cancellable {
-    public final Player player;
-    public final Menu menu;
-    public final Page page;
-    private static final HandlerList HANDLERS_LIST = new HandlerList();
+public class MenuCloseEvent extends MenuEvent implements Cancellable {
     private final InventoryCloseEvent inventoryCloseEvent;
     private boolean isCancelled;
 
     public MenuCloseEvent(Player player, Page page, InventoryCloseEvent e) {
-        this.player = player;
-        this.page = page;
-        this.menu = page.getParent();
+        super(player, page);
         this.inventoryCloseEvent = e;
     }
 
@@ -27,8 +21,4 @@ public class MenuCloseEvent extends Event implements Cancellable {
     public boolean isCancelled() { return isCancelled; }
     @Override
     public void setCancelled(boolean b) { isCancelled = b; player.openInventory(inventoryCloseEvent.getInventory()); } // might need to delay this by a tick
-
-    @Override
-    public HandlerList getHandlers() { return HANDLERS_LIST; }
-    public static HandlerList getHandlerList() { return HANDLERS_LIST; }
 }

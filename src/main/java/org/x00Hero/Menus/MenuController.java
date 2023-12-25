@@ -1,7 +1,6 @@
 package org.x00Hero.Menus;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -11,12 +10,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.x00Hero.Main;
 import org.x00Hero.Menus.Components.Menu;
 import org.x00Hero.Menus.Components.MenuItem;
+import org.x00Hero.Menus.Components.NavigationItem;
 import org.x00Hero.Menus.Components.Page;
 import org.x00Hero.Menus.Events.Item.*;
 import org.x00Hero.Menus.Events.Menu.*;
+
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +31,7 @@ public class MenuController implements Listener {
     //region Menu Handling
     @EventHandler
     public void InventoryHandler(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) { return; }
+        if (!(event.getWhoClicked() instanceof Player player)) return;
         Inventory clickedInventory = event.getClickedInventory();
         Page page = getPage(player);
         InventoryAction action = event.getAction();
@@ -43,13 +43,21 @@ public class MenuController implements Listener {
         String heldName = heldItem != null ? heldItem.hasItemMeta() ? heldItem.getItemMeta().getDisplayName() : heldItem.getType().name() : "NULL";
         //Main.Log("Current: " + currentName + " held: " + heldName);
         MenuItem clickedItem = page.getItem(slot);
+        if(clickedInventory == page.getInventory()) CallEvent(new MenuClickEvent(player, page, event, clickedItem, event.getCursor()));
         int interactedSlot = event.getRawSlot();
         Inventory interactedInventory = isTopInventory(interactedSlot, event.getView()) ? event.getView().getTopInventory() : event.getView().getBottomInventory();
         //boolean destinedToPage = destinationInventory == getCurrentInventory(player);
         if(currentItem != null && currentItem.isSimilar(Menu.nothing)) { event.setCancelled(true); /*Clicked Filled Slot*/ }
         if(clickedItem != null) {
             for(MenuItem navItem : page.getNavigationItems())
-                if(clickedItem.isSimilar(navItem)) CallEvent(new MenuNavigationClickEvent(player, true, page, event));
+                if(clickedItem.isSimilar(navItem)) {
+                    NavigationItem nav = new NavigationItem(navItem);
+                    Menu menu = page.getParent();
+                    Page nextPage = menu.getPage(page.pageNumber + nav.getNavAmount());
+                    if(nextPage != null) nextPage.open(player);
+                    CallEvent(new MenuNavigationClickEvent(player, page, nav, event));
+                    Log("Navigating");
+                }
             for(MenuItem menuItem : page.values())
                 if(clickedItem.isSimilar(menuItem)) CallEvent(new MenuItemClickEvent(player, menuItem, page, event));
         }
@@ -141,7 +149,7 @@ public class MenuController implements Listener {
     public static void setInMenus(Player player, Page page) { setInMenus(player.getUniqueId(), page); }
     public static void setInMenus(UUID uuid, Page page) {
         Player player = Bukkit.getPlayer(uuid);
-        if(inMenus.containsKey(uuid)) CallEvent(new PageChangeEvent(player, page.getParent(), inMenus.get(uuid), page));
+        if(inMenus.containsKey(uuid)) CallEvent(new MenuNavigationEvent(player, inMenus.get(uuid), page));
         else CallEvent(new MenuOpenEvent(player, page));
         inMenus.put(uuid, page);
     }

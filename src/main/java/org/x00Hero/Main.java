@@ -25,7 +25,7 @@ public class Main extends JavaPlugin {
 
     public void registerCommands() {
         getCommand("menu").setExecutor(new CommandController());
-        getCommand("stackable").setExecutor(new CommandController());
+        //getCommand("stackable").setExecutor(new CommandController());
     }
     public void registerEvents() {
         registerEvent(new CommandController());

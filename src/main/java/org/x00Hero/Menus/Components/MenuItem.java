@@ -18,6 +18,14 @@ public class MenuItem extends ItemBuilder {
     public static final PersistentDataType<String, String> MenuItemType = PersistentDataType.STRING;
 
     public MenuItem(Material material) { super(material); setCustomData(MenuItemKey, MenuItemType, stored); }
+    public MenuItem(MenuItem menuItem) {
+        super(menuItem);
+        this.slot = menuItem.getSlot();
+        this.parent = menuItem.getParent();
+        this.ID = menuItem.getID();
+        this.enabled = menuItem.isEnabled();
+        this.cancelClick = menuItem.isCancelClick();
+    }
     public MenuItem(ItemStack itemStack) { super(itemStack); setCustomData(MenuItemKey, MenuItemType, stored); }
     public MenuItem(ItemStack itemStack, boolean cancelClick) {
         super(itemStack);
@@ -38,6 +46,12 @@ public class MenuItem extends ItemBuilder {
     public MenuItem(ItemBuilder itemBuilder, int slot) {
         super(itemBuilder);
         this.slot = slot;
+        setCustomData(MenuItemKey, MenuItemType, stored);
+    }
+    public MenuItem(ItemBuilder itemBuilder, int slot, Page page) {
+        super(itemBuilder);
+        this.slot = slot;
+        this.parent = page;
         setCustomData(MenuItemKey, MenuItemType, stored);
     }
     public MenuItem(ItemBuilder itemBuilder, int slot, int page) {

@@ -39,12 +39,14 @@ public class ItemBuilder extends ItemStack {
         setName(name);
         setLore(lore);
     }
-
-    public Object getCustomData(NamespacedKey key, PersistentDataType type) { return getItemMeta().getPersistentDataContainer().getOrDefault(key, type, ""); }
+    public Object getCustomData(NamespacedKey key, PersistentDataType type) { return getItemMeta().getPersistentDataContainer().getOrDefault(key, type, "1"); }
     public void setCustomData(NamespacedKey key, PersistentDataType type, Object input) { setCustomData(this, key, type, input); }
     public static void setCustomData(ItemStack itemStack, NamespacedKey key, PersistentDataType type, Object input) {
         ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.getPersistentDataContainer().set(key, type, input);
+        if(itemMeta != null) {
+            itemMeta.getPersistentDataContainer().set(key, type, input);
+        }
+        itemStack.setItemMeta(itemMeta);
     }
     public static String formatColors(String string) { return formatColors(string, '&'); }
     public static String formatColors(String string, char translateChar) { return ChatColor.translateAlternateColorCodes(translateChar, string); }

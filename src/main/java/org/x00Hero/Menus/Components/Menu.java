@@ -3,15 +3,16 @@ package org.x00Hero.Menus.Components;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.x00Hero.Main;
 import org.x00Hero.Menus.MenuController;
 
 import java.util.HashMap;
 import java.util.List;
 
+import static org.x00Hero.Main.Log;
+
 public class Menu extends HashMap<Integer, Page> {
     private final String title;
-    private int currentPage = 0;
+    private int currentPage, firstPage, lastPage;
     private int pageLimit = 10000; // to prevent issues keep this at a reasonable number I'd say
     private int slotLimit = 54; // itemsPerPage (will be adjusted for navigation if needed)
     private int itemCount = 0;
@@ -34,6 +35,11 @@ public class Menu extends HashMap<Integer, Page> {
         this.permission = "Menus.menu." + ID;
     }
     public String getTitle() { return title; }
+
+    @Override
+    public String toString() {
+        return title;
+    }
 
     //region Item Handling
     public MenuItem AddOverfillItem(MenuItem menuItem, Page page) {
@@ -65,30 +71,27 @@ public class Menu extends HashMap<Integer, Page> {
                 if(page.isSlotAvailable()) return page;
             }
         } else {
-            for(Page page : values()) {
+            for(Page page : values())
                 if(page.isSlotAvailable()) return page;
-            }
         }
         return null;
     }
-    public Menu addItems(List<MenuItem> menuitems) { for(MenuItem menuItem : menuitems) addItem(menuItem); return this; }
+    public Menu addItems(List<MenuItem> menuitems) { menuitems.forEach(this::addItem); return this; }
     public void addItem(ItemStack item) { addItem(item, -1); } // Add Item to any slot in any Page
     public void addItem(ItemStack item, int slot) { addItem(new MenuItem(item, slot)); } // Add Item to any Page
     public void addItem(MenuItem item) {
         Page page = getCreatePage(currentPage);
-        if(page.isFull()) {
+        if(page.addItem(item) != null) {
             currentPage++;
-            Main.Log("Page is full with " + page.size());
-            page = createPage(currentPage);
+            Log("Page is full with " + page.size());
+            page = getCreatePage(currentPage);
+            page.addItem(item);
         }
         //Main.Log("Adding " + item.getName() + " @ " + item.getSlot());
-        page.addItem(item);
     }
 
     @Override
-    public Page put(Integer key, Page value) {
-        return setPage(key, value, true);
-    }
+    public Page put(Integer key, Page value) { return setPage(key, value, true); }
 
     public void addItemToPage(int page, ItemStack item) {
         if (page < 0) throw new IllegalArgumentException("Page number must be >0.");
@@ -104,16 +107,24 @@ public class Menu extends HashMap<Integer, Page> {
     }
     //endRegion
     public boolean isInitial() { return initial; }
+    public boolean isFirstPage(Page page) { return isFirstPage(page.getPageNumber()); }
+    public boolean isFirstPage(int pageNumber) { return pageNumber == firstPage; }
+    public boolean isLastPage(Page page) { return isLastPage(page.getPageNumber()); }
+    public boolean isLastPage(int pageNumber) { return pageNumber == lastPage; }
     public boolean isValidPageNumber(int pageNumber) { return pageNumber <= pageLimit && pageNumber >= 0; }
     public boolean containsPage(int pageNumber) { return containsKey(pageNumber); }
+    public int getFirstPageNumber() { return firstPage; }
+    public int getLastPageNumber() { return lastPage; }
     public int getSlotLimit() { return slotLimit; }
     public int getPageCount() { return size(); }
+    public Page getFirstPage() { return get(firstPage); }
+    public Page getLastPage() { return get(lastPage); }
     public Page getPage(int pageNumber) { return get(pageNumber); }
     public Page createPage(int pageNumber) {
         if(isValidPageNumber(pageNumber) && (containsKey(pageNumber) || pageNumber > pageLimit)) return null;
         Page page = new Page(pageNumber, slotLimit, title).setParent(this);
-        put(pageNumber, page);
-        initial = false;
+        setPage(pageNumber, page);
+        if(keySet().size() > 1) initial = false;
         return page;
     }
     public boolean addPage(Page page) { return addPage(page.pageNumber, page); }
@@ -122,8 +133,11 @@ public class Menu extends HashMap<Integer, Page> {
     public Page setPage(int pageNumber, Page page) { return setPage(pageNumber, page, true); }
     public Page setPage(int pageNumber, Page page, boolean replace) {
         if(isValidPageNumber(pageNumber) && containsKey(pageNumber) && !replace) return null;
+        if(pageNumber > lastPage) lastPage = pageNumber;
+        if(pageNumber < firstPage) firstPage = pageNumber;
         page.pageNumber = pageNumber;
         page.setParent(this);
+        Log("Setting Page " + pageNumber + " lP: " + lastPage + " fP: " + firstPage);
         return super.put(pageNumber, page);
     }
     public void setPageLimit(int pageLimit) {
@@ -133,15 +147,13 @@ public class Menu extends HashMap<Integer, Page> {
 
     public void open(Player player) { open(player, 0); }
     public void open(Player player, int pageNumber) {
-        if(containsKey(pageNumber)) getCreatePage(pageNumber).open(player);
+        if(containsKey(pageNumber)) getPage(pageNumber).open(player);
         else player.sendMessage("Page not found.");
     }
     public void open(Player player, int pageNumber, boolean fillEmpty) {
         if(containsKey(pageNumber)) getPage(pageNumber).open(player);
         else player.sendMessage("Page not found.");
     }
-    public void build() {
-        for(int i = 0; i < pageLimit; i++) getCreatePage(i).CreateInventory();
-    }
+    public void build() { for(int i = 0; i < pageLimit; i++) getCreatePage(i).CreateInventory(); }
     public Menu register() { MenuController.registerMenu(this); return this; }
 }
