@@ -87,11 +87,8 @@ public class Menu extends HashMap<Integer, Page> {
             page = getCreatePage(currentPage);
             page.addItem(item);
         }
-        //Main.Log("Adding " + item.getName() + " @ " + item.getSlot());
+        //Log("Adding " + item.getName() + " @ " + item.getSlot() + " to page: " + item.getPage());
     }
-
-    @Override
-    public Page put(Integer key, Page value) { return setPage(key, value, true); }
 
     public void addItemToPage(int page, ItemStack item) {
         if (page < 0) throw new IllegalArgumentException("Page number must be >0.");
@@ -123,6 +120,7 @@ public class Menu extends HashMap<Integer, Page> {
     public Page createPage(int pageNumber) {
         if(isValidPageNumber(pageNumber) && (containsKey(pageNumber) || pageNumber > pageLimit)) return null;
         Page page = new Page(pageNumber, slotLimit, title).setParent(this);
+        Log("Creating page " + pageNumber);
         setPage(pageNumber, page);
         if(keySet().size() > 1) initial = false;
         return page;
@@ -138,7 +136,7 @@ public class Menu extends HashMap<Integer, Page> {
         page.pageNumber = pageNumber;
         page.setParent(this);
         Log("Setting Page " + pageNumber + " lP: " + lastPage + " fP: " + firstPage);
-        return super.put(pageNumber, page);
+        return put(pageNumber, page);
     }
     public void setPageLimit(int pageLimit) {
         if (pageLimit < 1) throw new IllegalArgumentException("Page limit must be greater than or equal to 1.");
@@ -154,6 +152,6 @@ public class Menu extends HashMap<Integer, Page> {
         if(containsKey(pageNumber)) getPage(pageNumber).open(player);
         else player.sendMessage("Page not found.");
     }
-    public void build() { for(int i = 0; i < pageLimit; i++) getCreatePage(i).CreateInventory(); }
+    public void build() { for(int i = firstPage; i <= lastPage; i++) getCreatePage(i).CreateInventory(); }
     public Menu register() { MenuController.registerMenu(this); return this; }
 }

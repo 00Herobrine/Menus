@@ -8,7 +8,6 @@ import org.bukkit.persistence.PersistentDataType;
 import static org.x00Hero.Main.plugin;
 
 public class MenuItem extends ItemBuilder {
-    //private ItemBuilder itemBuilder;
     private Page parent;
     private String ID;
     private boolean enabled = true, cancelClick = true;

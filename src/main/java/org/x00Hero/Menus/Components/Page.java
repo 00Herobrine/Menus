@@ -9,6 +9,7 @@ import org.x00Hero.Menus.MenuController;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Set;
 
 import static org.x00Hero.Main.Log;
 
@@ -26,35 +27,36 @@ public class Page extends HashMap<Integer, MenuItem> {
     public Page(int pageNumber) {
         this.pageNumber = pageNumber;
         setSlots(pageType.maxSlots);
+        setNavigationItems();
     }
     public Page(int pageNumber, int slots) {
         this.pageNumber = pageNumber;
         setSlots(slots);
+        setNavigationItems();
     }
     public Page(int pageNumber, int slots, String title) {
         this.pageNumber = pageNumber;
         setSlots(slots);
         setTitle(title);
+        setNavigationItems();
     }
     public Page(String title, InventoryType type) {
         setTitle(title);
         setSlots(pageType.maxSlots);
         this.inventoryType = type;
+        setNavigationItems();
     }
     public Page(String title) {
         setTitle(title);
         setSlots(pageType.maxSlots);
+        setNavigationItems();
     }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public boolean isSlotAvailable() { return getAvailableSlot() != -1; }
     public int getAvailableSlot() {
-        for (int curSlot = 0; curSlot < pageType.maxSlots; curSlot++) {
-            if(!containsKey(curSlot) && !customNavigation.containsKey(curSlot)) return curSlot;
-/*            if (containsKey(curSlot)) Log("Item Already @ " + curSlot);
-            else if(customNavigation.containsKey(curSlot)) Log("Nav Item @ " + curSlot);
-            else return curSlot;*/
-        }
+        for (int curSlot = 0; curSlot < pageType.maxSlots; curSlot++)
+            if(!containsKey(curSlot) && !navigationItems.containsKey(curSlot)) return curSlot;
         return -1;
     }
     public static int getAdjustedAmount(Integer slots) { return slots <= 5 ? 5 : (int) (Math.ceil((double) slots / 9)) * 9; }
@@ -77,6 +79,7 @@ public class Page extends HashMap<Integer, MenuItem> {
     }
     public void setNavigationItems() {
         customNavigation.clear();
+        Log("Setting Nav items " + pageNumber);
         if(!isFirstPage() && !isInitial()) {
             NavigationItem navigationItem = new NavigationItem(new MenuItem(Menu.backItemBuilder, 45, this), -1);
             customNavigation.put(45, navigationItem);
@@ -92,10 +95,12 @@ public class Page extends HashMap<Integer, MenuItem> {
     public void updateNavigationItems() { updateNavigationItems(getSize()); }
     private void updateNavigationItems(int adjustedCount) {
         navigationItems.clear();
+        Log("Updating Nav Items on page " + pageNumber + " with count " + adjustedCount);
         for(NavigationItem navItem : customNavigation.values()) {
             int itemSlot = navItem.getSlot();
-            Log("Original Slot: " + itemSlot);
-            if(itemSlot > adjustedCount) itemSlot = itemSlot - adjustedCount;
+            int originalSlots = getAdjustedAmount(itemSlot + 1);
+            Log("Original Slot: " + itemSlot + " slots: " + originalSlots);
+            if(itemSlot > adjustedCount) itemSlot = itemSlot - (originalSlots - adjustedCount);
             navItem.setSlot(itemSlot);
             navigationItems.put(itemSlot, navItem);
             Log("Updating '" + navItem.getName() + "' to " + itemSlot + " @ " + pageNumber);
@@ -125,13 +130,18 @@ public class Page extends HashMap<Integer, MenuItem> {
         int rowsNow = getSize() / 9;
         if(itemSlot > biggestSlot) biggestSlot = itemSlot;
         int rowsRequired = getAdjustedAmount(itemSlot + 1) / 9;
-        //if(rowsRequired > rowsNow) updateNavigationItems(itemSlot + 1);
-        Log("Rows: " + rowsNow + " Required: " + rowsRequired + " Slot: " + itemSlot);
-        Log("Adding Item @ " + pageNumber);
+        menuItem.setParent(this);
+        if(rowsRequired > rowsNow) updateNavigationItems(itemSlot + 1);
+        //Log("Rows: " + rowsNow + " Required: " + rowsRequired + " Slot: " + itemSlot);
+        //Log("Adding Item @ " + pageNumber);
         return setItem(menuItem);
     }
     public MenuItem setItem(MenuItem menuItem) { return setItem(menuItem, menuItem.getSlot()); }
-    public MenuItem setItem(MenuItem menuItem, int slot) { if(inventory != null && slot < inventory.getSize()) inventory.setItem(slot, menuItem); return put(slot, menuItem); }
+    public MenuItem setItem(MenuItem menuItem, int slot) {
+        if(inventory != null && slot < inventory.getSize())
+            inventory.setItem(slot, menuItem);
+        return put(slot, menuItem);
+    }
     public InventoryType getInventoryType() {
         if(inventoryType != null) return inventoryType;
         int slots = getSize();
@@ -140,6 +150,7 @@ public class Page extends HashMap<Integer, MenuItem> {
         if(slots == 9) return InventoryType.DISPENSER; // 3x3
         else return null;
     }
+    public Set<Integer> getNavItemSlots() { return navigationItems.keySet(); }
     public boolean isInitial() { return parent == null || parent.isInitial(); }
     public boolean isFirstPage() { return parent == null || parent.isFirstPage(this); }
     public boolean isLastPage() { return parent == null || parent.isLastPage(this); }
@@ -150,17 +161,19 @@ public class Page extends HashMap<Integer, MenuItem> {
         if(type == null) inventory = Bukkit.createInventory(null, getSize(), title);
         else inventory = Bukkit.createInventory(null, type, title);
         this.inventory = inventory;
+        Log("Creating Inventory " + pageNumber);
         PageItems();
     }
     public void PageItems() {
         if(inventory == null) return;
+        Log("Paging Items " + pageNumber);
         setNavigationItems();
         for(MenuItem menuItem : values()) {
-            Log("Setting " + menuItem + " @ " + menuItem.getSlot());
+            //Log("Paging " + menuItem + " @ " + menuItem.getSlot());
             inventory.setItem(menuItem.getSlot(), menuItem);
         }
         for(MenuItem navItem : navigationItems.values()) {
-            Log("Setting NavItem " + navItem + " @ " + navItem.getSlot());
+            //Log("Paging NavItem " + navItem + " @ " + navItem.getSlot());
             inventory.setItem(navItem.getSlot(), navItem);
         }
     }
@@ -170,8 +183,5 @@ public class Page extends HashMap<Integer, MenuItem> {
         MenuController.setInMenus(player, this);
     }
     public Menu getParent() { return parent; }
-    public Page setParent(Menu menu) {
-        this.parent = menu;
-        return this;
-    }
+    public Page setParent(Menu menu) { this.parent = menu; return this; }
 }
